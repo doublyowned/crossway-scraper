@@ -2,6 +2,7 @@
 import scrapy
 from scrapy.http import Request
 from scrapy.loader import ItemLoader
+from scrapy.loader.processors import TakeFirst
 
 from bookscrape.items import Book
 
@@ -11,24 +12,36 @@ class CrosswaySpider(scrapy.Spider):
     start_urls = ['http://crossway.org/books']
 
     detail_xpath = {
-    	'title': '//div[@id="book-detail"]//h1',
-    	'author': '//p[@class="detail-contributors"]//strong[text()="By"]/a/text()',
+        'title': '//div[@id="book-detail"]//h1/text()',
+        'author': '//p[@class="detail-contributors"]//strong[text()="By"]/a/text()',
+        'category': '//td[text()="Category:"]/following::td/a/text()'
+    }
+
+    hardcoded_values = {
+        'publisher': 'Crossway'
     }
 
     def parse(self, response):
-    	detail_links = response.xpath('//a[contains(@class,"thumb-cover")]/@href')
+        detail_links = response.xpath('//a[contains(@class,"thumb-cover")]/@href').extract()
 
-    	for href in detail_links:
-    		yield Request(response.urljoin(href), callback=self.parse_detail)
+        print detail_links
 
-	def parse_detail(self, response):
-		#iterate over xpath to scrape and load item details
-		item = ItemLoader(item=Book(), response=response)
+        for href in detail_links:
+            yield Request(response.urljoin(href), callback=self.parse_detail)
 
-		for field, xpath in detail_xpath:
-			item.add_xpath(field, xpath)
+    def parse_detail(self, response):
+        item = ItemLoader(item=Book(), response=response)
+        item.default_output_processor = TakeFirst()
 
-		for field, value in hardcoded_values:
-			item.add_value(field, value)
+        #iterate over xpath to scrape and load item details
+        for field, xpath in self.detail_xpath.iteritems():
+            item.add_xpath(field, xpath)
 
-		return item.load_item()
+        #add hardcoded values
+        for field, value in self.hardcoded_values.iteritems():
+            item.add_value(field, value)
+
+        #add book detaail url
+        item.add_value('url', response.url)
+
+        return item.load_item()
