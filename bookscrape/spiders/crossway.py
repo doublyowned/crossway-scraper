@@ -13,7 +13,7 @@ class CrosswaySpider(scrapy.Spider):
 
     detail_xpath = {
         'title': '//div[@id="book-detail"]//h1/text()',
-        'author': '//p[@class="detail-contributors"]//strong[text()="By"]/a/text()',
+        'author': '//p[@class="detail-contributors"]//strong[text()="By"]/following::a/text()',
         'category': '//td[text()="Category:"]/following::td/a/text()'
     }
 
