@@ -14,6 +14,7 @@ BOT_NAME = 'bookscrape'
 SPIDER_MODULES = ['bookscrape.spiders']
 NEWSPIDER_MODULE = 'bookscrape.spiders'
 
+LOG_LEVEL='INFO'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'bookscrape (+http://www.yourdomain.com)'
