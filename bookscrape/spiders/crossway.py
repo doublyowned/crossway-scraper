@@ -23,9 +23,10 @@ class CrosswaySpider(scrapy.Spider):
         'pic_url': '//*[@id="cover"]/@src',
         'medium': by_previous_text('Format:'),
         'ISBN_10': by_previous_text('ISBN-10:'),
-        'blurb': '//div[contains(@class,"top-details desktop")]/following-sibling::div/p',
+        'blurb': '//div[@class="top-details desktop"]/following::div',
         'author_pic': '//div[@class="book-detail-author clear"]/a/img/@src', 
-        'author_blurb': '//div[@class="book-detail-author clear"]/div/p'
+        'author_blurb': '//div[@class="book-detail-author clear"]/div/p',
+        # 'author': '//div[@class="book-detail-author clear"]/div/p/p'
     }
 
     hardcoded_values = {
@@ -33,12 +34,15 @@ class CrosswaySpider(scrapy.Spider):
     }
 
     def parse(self, response):
+        #grab relevant links for further parsing
         pagination_link = response.xpath('//a[@class="next"]/@href')
         detail_links = response.xpath('//a[contains(@class,"thumb-cover")]/@href').extract()
 
+        #send book detail links to be parsed
         for href in detail_links:
             yield Request(response.urljoin(href), callback=self.parse_detail)
 
+        #if there's a next page, parse it as well
         for next_href in pagination_link.extract():
             yield Request(response.urljoin(next_href), callback=self.parse)
 
@@ -56,13 +60,10 @@ class CrosswaySpider(scrapy.Spider):
         for field, value in self.hardcoded_values.iteritems():
             item.add_value(field, value)
 
-        #add book detaail url
-        # item.add_value('url', response.url)
-
         return item.load_item()
 
-    def closed(self, spider):
-        categories = self.categories
-        unique= set(c for c in categories)
-        # q.d()
-        print 'unique categ', unique
+    # def closed(self, spider):
+    #     categories = self.categories
+    #     unique= set(c for c in categories)
+    #     
+    #     print 'unique categ', unique

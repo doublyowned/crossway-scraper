@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import scrapy
 
+from scrapy.loader.processors import Join
+
 class Book(scrapy.Item):
     title = scrapy.Field()
     category = scrapy.Field()
